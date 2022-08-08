@@ -1,0 +1,72 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    height: 100vh;
+    background-color: rgb(18, 36, 54);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+@media (orientation: landscape){
+    #drawSpace {
+        height: calc(.8 * 100vh);
+        width: calc(.8 * 100vh);
+    }
+    #background {
+        height: 100vw;
+        width: 100vw;
+    }
+}
+@media (orientation: portrait){
+    #drawSpace {
+        height: calc(.8 * 100vw);
+        width: calc(.8 * 100vw);
+    }
+    #background {
+        height: 100vh;
+        width: 100vh;
+    }
+}
+#background {
+    position: absolute;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    left: 0;
+}
+    #background>.hovered {
+        background: rgba(255,0,0,.5);
+    }
+#appContainer {
+    /* display: flex; */
+    display: none;
+    justify-content: center;
+    align-items: center;;
+    position: relative;
+}
+#appHeader {
+    display: none;
+    position: absolute;
+    height: 50px;
+    top: -50px;
+    width: 100%;
+    background-color: red;
+}
+#sideDrawer {
+    display: none;
+    position: absolute;
+    height: 100%;
+    width: 50px;
+    background-color: blue;
+    left: -50px;
+}
+#drawSpace {
+    background-color: rgba(255,255,255, .2);
+    border: 2px solid black;
+    border-radius: 5px;
+}
