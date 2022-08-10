@@ -185,10 +185,10 @@ class SnakeGame {
             snake.id = i;
         })
     }
-    static setUpdateTimer(){
+    static setUpdateTimer(timer){
         SnakeGame.interval = setInterval(()=>{
             SnakeGame.snakes.forEach(snake=>snake.update())
-        }, SnakeGame.updateTimer)
+        }, timer || SnakeGame.updateTimer)
 
     }
     static pauseUpdateTimer(){
@@ -241,4 +241,4 @@ function shuffleInPlace(array) {
 
 SnakeGame.createGrid();
 SnakeGame.createSnake(50);
-SnakeGame.setUpdateTimer();
+SnakeGame.setUpdateTimer(10);
