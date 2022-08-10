@@ -47,8 +47,8 @@ body {
     left: 0;
     z-index: -100;
 }
-#background>.item{
-    /* border:  */
+#background>.occupied{
+    /* outline: 1px solid white; */
 }
 #background>.head{
     outline: 1px solid rgba(255,255,255, .2);
