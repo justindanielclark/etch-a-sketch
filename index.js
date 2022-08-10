@@ -3,9 +3,10 @@ class Snake {
     static tendency = 25;
     static growthRate = 10;
     static colorAdjust = 50;
-    constructor(startingX, startingY){
+    constructor(startingX, startingY, id){
         this.x = startingX;
         this.y = startingY;
+        this.id = id;
         this.length = SnakeGame.startingSnakeLength;
         this.currentDirection = Math.floor(Math.random()*4);
         this.lastDirection = this.currentDirection;
@@ -73,10 +74,10 @@ class Snake {
     }
     update(){
         this.grow();
-
+        //Randomly Decide If Moving In Another Direction Is Something We Want To Do Based on Tendency
         if(Math.floor(Math.random()*this.tendency) === 0){
             let newDirection = Math.floor(Math.random()*Snake.directions.length);
-            while(newDirection === this.lastDirection || newDirection === ((this.lastDirection+2)%4)){
+            while(newDirection === this.lastDirection){
                 newDirection = Math.floor(Math.random()*Snake.directions.length);
             }
             this.lastDirection = this.currentDirection;
@@ -86,9 +87,56 @@ class Snake {
             this.tendency--;
         }
 
-        this.move();
-        this.adjustPosition();
-        
+        //Figure Out If We Have Any Valid Moves, If So, Proceed; If Not, Kill;
+        let validMove = this.checkValidMove(this.currentDirection);
+        if(!validMove){
+            let directions = Snake.directions.slice(0, Snake.directions.length);
+            directions.splice(this.currentDirection, 1);
+            shuffleInPlace(directions);
+            while(directions.length > 0 && !validMove){
+                this.currentDirection = directions[0];
+                directions.splice(0,1);
+                validMove = this.checkValidMove(this.currentDirection);
+            }
+            if(validMove){
+                this.move();
+                this.adjustPosition();
+                return;
+            } else {
+                SnakeGame.removeSnake(this.id);
+                this.positions.forEach(position=>{
+                    let div = SnakeGame.getTile(position[0], position[1]);
+                    div.classList.toggle(`occupied`);
+                    div.style.backgroundColor = ``;
+                })
+            }
+        } else {
+            this.move();
+            this.adjustPosition();
+        }
+    }
+    checkValidMove(direction){
+        let nextX = this.x;
+        let nextY = this.y;
+        switch(direction){
+            case 0:{
+                nextY = (this.y-1 === -1 ? SnakeGame.gridSize-1 : this.y - 1);
+                break;
+            }
+            case 1:{
+                nextX = (this.x+1 === SnakeGame.gridSize ? 0 : this.x + 1);
+                break;
+            }
+            case 2:{
+                nextY = (this.y+1 === SnakeGame.gridSize ? 0 : this.y + 1);
+                break;
+            }
+            case 3:{
+                nextX = (this.x-1 === -1 ? SnakeGame.gridSize-1 : this.x -1);
+                break;
+            }
+        }
+        return !SnakeGame.getTile(nextX, nextY).classList.contains(`occupied`);
     }
 }
 class SnakeGame {
@@ -97,7 +145,7 @@ class SnakeGame {
     static map = new Map();
     static snakes = [];
     static interval;
-    static updateTimer = 500;
+    static updateTimer = 100;
     static createGrid(){
         const background = document.querySelector(`#background`);
         for(let i = 0; i < SnakeGame.gridSize; i++){
@@ -118,8 +166,22 @@ class SnakeGame {
         for(let i = 0; i < num; i++){
             let randomX = Math.floor(SnakeGame.gridSize * Math.random());
             let randomY = Math.floor(SnakeGame.gridSize * Math.random());
-            SnakeGame.snakes.push(new Snake(randomX, randomY).initialize());
+            while(SnakeGame.getTile(randomX, randomY).classList.contains(`occupied`)){
+                randomX = Math.floor(SnakeGame.gridSize * Math.random());
+                randomY = Math.floor(SnakeGame.gridSize * Math.random());
+            }
+            SnakeGame.snakes.push(new Snake(randomX, randomY, SnakeGame.snakes.length + 1).initialize());
         }
+    }
+    static removeSnake(id){
+        this.snakes.splice(id, 1);
+        this.updateSnakeIDs();
+        this.createSnake(1);
+    }
+    static updateSnakeIDs(){
+        this.snakes.forEach((snake, i)=>{
+            snake.id = i;
+        })
     }
     static setUpdateTimer(){
         SnakeGame.interval = setInterval(()=>{
@@ -157,15 +219,30 @@ class DrawSpace {
         // }
     }
 }
-
+function shuffleInPlace(array) {
+    //Taken from: https://bost.ocks.org/mike/shuffle/ -> Clever Shuffle That Moves Front Items to the Back, Shuffles in O(n);
+    var m = array.length, t, i;
+    // While there remain elements to shuffle…
+    while (m) {
+  
+      // Pick a remaining element…
+      i = Math.floor(Math.random() * m--);
+  
+      // And swap it with the current element.
+      t = array[m];
+      array[m] = array[i];
+      array[i] = t;
+    }
+    return array;
+}
 
 
 SnakeGame.createGrid();
-SnakeGame.createSnake(3);
+SnakeGame.createSnake(20);
 SnakeGame.setUpdateTimer();
-
-
-DrawSpace.createGrid();
-
-
 let snake = SnakeGame.snakes[0];
+
+// DrawSpace.createGrid();
+
+
+
