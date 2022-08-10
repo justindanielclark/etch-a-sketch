@@ -1,6 +1,6 @@
 class Snake {
     static directions = [0,1,2,3]; // up, right, down, left
-    static tendency = 25;
+    static tendency = 50;
     static growthRate = 10;
     static colorAdjust = 50;
     constructor(startingX, startingY, id){
@@ -73,7 +73,6 @@ class Snake {
         }
     }
     update(){
-        this.grow();
         //Randomly Decide If Moving In Another Direction Is Something We Want To Do Based on Tendency
         if(Math.floor(Math.random()*this.tendency) === 0){
             let newDirection = Math.floor(Math.random()*Snake.directions.length);
@@ -99,18 +98,20 @@ class Snake {
                 validMove = this.checkValidMove(this.currentDirection);
             }
             if(validMove){
+                this.grow();
                 this.move();
                 this.adjustPosition();
                 return;
             } else {
-                SnakeGame.removeSnake(this.id);
                 this.positions.forEach(position=>{
                     let div = SnakeGame.getTile(position[0], position[1]);
-                    div.classList.toggle(`occupied`);
-                    div.style.backgroundColor = ``;
+                    div.classList.remove(`occupied`);
+                    div.style.backgroundColor = null;
                 })
+                SnakeGame.removeSnake(this.id);
             }
         } else {
+            this.grow();
             this.move();
             this.adjustPosition();
         }
@@ -140,12 +141,13 @@ class Snake {
     }
 }
 class SnakeGame {
-    static gridSize = 50;
+    static gridSize = 100;
     static startingSnakeLength = 3;
+    static snakesToCreate = 0;
     static map = new Map();
     static snakes = [];
     static interval;
-    static updateTimer = 100;
+    static updateTimer = 25;
     static createGrid(){
         const background = document.querySelector(`#background`);
         for(let i = 0; i < SnakeGame.gridSize; i++){
@@ -174,9 +176,9 @@ class SnakeGame {
         }
     }
     static removeSnake(id){
-        this.snakes.splice(id, 1);
-        this.updateSnakeIDs();
-        this.createSnake(1);
+        SnakeGame.snakes.splice(id, 1);
+        SnakeGame.updateSnakeIDs();
+        SnakeGame.snakesToCreate++;
     }
     static updateSnakeIDs(){
         this.snakes.forEach((snake, i)=>{
@@ -238,11 +240,5 @@ function shuffleInPlace(array) {
 
 
 SnakeGame.createGrid();
-SnakeGame.createSnake(20);
+SnakeGame.createSnake(50);
 SnakeGame.setUpdateTimer();
-let snake = SnakeGame.snakes[0];
-
-// DrawSpace.createGrid();
-
-
-
