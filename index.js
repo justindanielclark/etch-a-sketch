@@ -1,3 +1,10 @@
+const app = document.querySelector(`#app`);
+
+document.querySelector(`#toggleControls`).addEventListener('click', (e)=>{
+    console.log(`hit`);
+    app.classList.toggle(`showingControls`);
+})
+
 class Snake {
     static directions = [0,1,2,3]; // up, right, down, left
     static tendency = 50;
@@ -141,7 +148,7 @@ class Snake {
     }
 }
 class SnakeGame {
-    static gridSize = 100;
+    static gridSize = 25;
     static startingSnakeLength = 3;
     static snakesToCreate = 0;
     static map = new Map();
@@ -211,24 +218,27 @@ class SnakeGame {
     }
 }
 class DrawSpace {
-    static GridSize = 50;
+    static gridSize = 16;
     static map = new Map();
     static createGrid(){
+        const colorPicker = document.querySelector(`#colorPicker`);
         const container = document.querySelector(`#drawSpace`);
-        console.log(container);
-        // for(let i = 0; i < DrawSpace.gridSize; i++){
-        //     DrawSpace.map.set(i.toString(), new Map());
-        // }
-        // for(let i = 0; i < (DrawSpace.gridSize ** 2); i++){
-        //     let div = document.createElement('div');
-        //     div.classList.toggle(`item`);
-        //     div.dataset.x = i%DrawSpace.gridSize;
-        //     div.dataset.y = Math.floor(i/DrawSpace.gridSize);
-        //     div.style.flex = `1 0 ${100/DrawSpace.gridSize}%`;
-        //     container.appendChild(div);
+        for(let i = 0; i < DrawSpace.gridSize; i++){
+            DrawSpace.map.set(i.toString(), new Map());
+        }
+        for(let i = 0; i < (DrawSpace.gridSize ** 2); i++){
+            let div = document.createElement('div');
+            div.classList.add(`item`);
+            div.dataset.x = i%DrawSpace.gridSize;
+            div.dataset.y = Math.floor(i/DrawSpace.gridSize);
+            div.addEventListener('mouseenter', (e)=>{
+              div.style.backgroundColor = colorPicker.value;
+            })
+            div.style.flex = `1 0 ${100/DrawSpace.gridSize}%`;
+            container.appendChild(div);
 
-        //     DrawSpace.map.get((i%DrawSpace.gridSize).toString()).set((Math.floor(i/DrawSpace.gridSize)).toString(), div);
-        // }
+            DrawSpace.map.get((i%DrawSpace.gridSize).toString()).set((Math.floor(i/DrawSpace.gridSize)).toString(), div);
+        }
     }
 }
 function shuffleInPlace(array) {
@@ -248,7 +258,11 @@ function shuffleInPlace(array) {
     return array;
 }
 
-
 SnakeGame.createGrid();
-SnakeGame.createSnake(50);
-SnakeGame.setUpdateTimer(10);
+SnakeGame.createSnake(20);
+SnakeGame.setUpdateTimer(50);
+
+DrawSpace.createGrid();
+
+
+

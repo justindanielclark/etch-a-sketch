@@ -6,38 +6,55 @@
 body {
     height: 100vh;
     background-color: rgb(18, 36, 54);
-    display: flex;
-    justify-content: center;
-    align-items: center;
     overflow: hidden;
 }
 
 @media (orientation: landscape){
-    #drawSpace {
-        height: calc(.8 * 100vh);
-        width: calc(.8 * 100vh);
-    }
     #background {
         height: 100vw;
         width: 100vw;
     }
-}
-@media (orientation: portrait){
     #drawSpace {
-        height: calc(.8 * 100vw);
-        width: calc(.8 * 100vw);
+        height: calc(.8 * 100vh);
+        width: calc(.8 * 100vh);
     }
+}
+#app {
+    height: calc(2 * 100vh);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    transition: transform 1s;
+}
+    #app.showingControls{
+        transform: translateY(-50%);
+    }
+    #controls, #appContainer{
+        flex: 1 0 50%;
+    }
+
+
+@media (orientation: portrait){
     #background {
         height: 100vh;
         width: 100vh;
     }
+    #drawSpace {
+        height: calc(.8 * 100vw);
+        width: calc(.8 * 100vw);
+    }
+}
+#toggleControls{
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 30px;
 }
 #controls {
-    position: absolute;
     display: flex;
-    left: 0;
-    top: 0;
-    z-index: 100;
+    justify-content: center;
+    align-items: center;
 }
 #background {
     position: absolute;
@@ -47,24 +64,25 @@ body {
     left: 0;
     z-index: -100;
 }
-#background>.occupied{
-    outline: 1px solid rgba(255,255,255,.1);
-}
-#background>.head{
-    outline: 1px solid rgba(255,255,255, .2);
-}
+    #background>.occupied{
+        outline: 1px solid rgba(255,255,255,.1);
+    }
+
 #appContainer {
     display: flex;
-    display: none;
     justify-content: center;
     align-items: center;;
-    position: relative;
-}
-#appContainer>.item {
-    border: 1px solid black
+    z-index: 100;
 }
 #drawSpace {
     background-color: rgba(255,255,255, 1);
     border: 2px solid black;
     border-radius: 5px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
 }
+    #drawSpace>.item {
+        border: 1px solid black;
+    }
