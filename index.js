@@ -25,6 +25,50 @@ class Snake {
         SnakeGame.getTile(this.x, this.y).style.backgroundColor = `rgba(${this.color.red}, ${this.color.green}, ${this.color.blue}, ${this.color.alpha})`;
         return this;
     }
+    update(){
+        //Randomly Decide If Moving In Another Direction Is Something We Want To Do Based on Tendency
+        if(Math.floor(Math.random()*this.tendency) === 0){
+            let newDirection = Math.floor(Math.random()*Snake.directions.length);
+            while(newDirection === this.lastDirection){
+                newDirection = Math.floor(Math.random()*Snake.directions.length);
+            }
+            this.lastDirection = this.currentDirection;
+            this.currentDirection = newDirection;
+            this.tendency = Snake.tendency;
+        } else {
+            this.tendency--;
+        }
+
+        //Figure Out If We Have Any Valid Moves, If So, Proceed; If Not, Kill;
+        let validMove = this.checkValidMove(this.currentDirection);
+        if(!validMove){
+            let directions = Snake.directions.slice(0, Snake.directions.length);
+            directions.splice(this.currentDirection, 1);
+            shuffleInPlace(directions);
+            while(directions.length > 0 && !validMove){
+                this.currentDirection = directions[0];
+                directions.splice(0,1);
+                validMove = this.checkValidMove(this.currentDirection);
+            }
+            if(validMove){
+                this.grow();
+                this.move();
+                this.adjustPosition();
+                return;
+            } else {
+                this.positions.forEach(position=>{
+                    let div = SnakeGame.getTile(position[0], position[1]);
+                    div.classList.remove(`occupied`);
+                    div.style.backgroundColor = null;
+                })
+                SnakeGame.setupForRemoval(this.id);
+            }
+        } else {
+            this.grow();
+            this.move();
+            this.adjustPosition();
+        }
+    }
     adjustPosition(){
         //Remove the last element in the area, or add if the snake hasn't hit full length
         this.positions.unshift([this.x, this.y]);
@@ -72,50 +116,6 @@ class Snake {
             }
         }
     }
-    update(){
-        //Randomly Decide If Moving In Another Direction Is Something We Want To Do Based on Tendency
-        if(Math.floor(Math.random()*this.tendency) === 0){
-            let newDirection = Math.floor(Math.random()*Snake.directions.length);
-            while(newDirection === this.lastDirection){
-                newDirection = Math.floor(Math.random()*Snake.directions.length);
-            }
-            this.lastDirection = this.currentDirection;
-            this.currentDirection = newDirection;
-            this.tendency = Snake.tendency;
-        } else {
-            this.tendency--;
-        }
-
-        //Figure Out If We Have Any Valid Moves, If So, Proceed; If Not, Kill;
-        let validMove = this.checkValidMove(this.currentDirection);
-        if(!validMove){
-            let directions = Snake.directions.slice(0, Snake.directions.length);
-            directions.splice(this.currentDirection, 1);
-            shuffleInPlace(directions);
-            while(directions.length > 0 && !validMove){
-                this.currentDirection = directions[0];
-                directions.splice(0,1);
-                validMove = this.checkValidMove(this.currentDirection);
-            }
-            if(validMove){
-                this.grow();
-                this.move();
-                this.adjustPosition();
-                return;
-            } else {
-                this.positions.forEach(position=>{
-                    let div = SnakeGame.getTile(position[0], position[1]);
-                    div.classList.remove(`occupied`);
-                    div.style.backgroundColor = null;
-                })
-                SnakeGame.removeSnake(this.id);
-            }
-        } else {
-            this.grow();
-            this.move();
-            this.adjustPosition();
-        }
-    }
     checkValidMove(direction){
         let nextX = this.x;
         let nextY = this.y;
@@ -145,9 +145,11 @@ class SnakeGame {
     static startingSnakeLength = 3;
     static snakesToCreate = 0;
     static map = new Map();
+    static removalMap = new Map();
     static snakes = [];
     static interval;
-    static updateTimer = 25;
+    static updateTimer = 250;
+    //GRID FUNCTIONS
     static createGrid(){
         const background = document.querySelector(`#background`);
         for(let i = 0; i < SnakeGame.gridSize; i++){
@@ -164,6 +166,12 @@ class SnakeGame {
             SnakeGame.map.get((i%SnakeGame.gridSize).toString()).set((Math.floor(i/SnakeGame.gridSize)).toString(), div);
         }
     }
+    static getTile(x,y){
+        if (!(typeof x === `string`)){x = x.toString()}
+        if (!(typeof y === `string`)){y = y.toString()}
+        return SnakeGame.map.get(x).get(y);
+    }
+    //SNAKE FUNCTIONS
     static createSnake(num = 1){
         for(let i = 0; i < num; i++){
             let randomX = Math.floor(SnakeGame.gridSize * Math.random());
@@ -175,29 +183,31 @@ class SnakeGame {
             SnakeGame.snakes.push(new Snake(randomX, randomY, SnakeGame.snakes.length + 1).initialize());
         }
     }
-    static removeSnake(id){
-        SnakeGame.snakes.splice(id, 1);
+    static removeAndCreateSnakes(){
+        let count = Array.from(SnakeGame.removalMap.keys()).length;
+        SnakeGame.snakes = SnakeGame.snakes.filter(snake => !SnakeGame.removalMap.get(snake.id));
+        SnakeGame.removalMap = new Map();
+        if(count){SnakeGame.createSnake(count)};
         SnakeGame.updateSnakeIDs();
-        SnakeGame.snakesToCreate++;
+    }
+    static setupForRemoval(id){
+        SnakeGame.removalMap.set(id, true);
     }
     static updateSnakeIDs(){
         this.snakes.forEach((snake, i)=>{
             snake.id = i;
         })
     }
+    //TIMER FUNCTIONS
     static setUpdateTimer(timer){
         SnakeGame.interval = setInterval(()=>{
-            SnakeGame.snakes.forEach(snake=>snake.update())
+            SnakeGame.snakes.forEach(snake=>snake.update());
+            SnakeGame.removeAndCreateSnakes();
         }, timer || SnakeGame.updateTimer)
 
     }
     static pauseUpdateTimer(){
         clearInterval(SnakeGame.interval);
-    }
-    static getTile(x,y){
-        if (!(typeof x === `string`)){x = x.toString()}
-        if (!(typeof y === `string`)){y = y.toString()}
-        return SnakeGame.map.get(x).get(y);
     }
 }
 class DrawSpace {
