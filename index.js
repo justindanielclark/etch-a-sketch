@@ -1,9 +1,10 @@
-const app = document.querySelector(`#app`);
-
-document.querySelector(`#toggleControls`).addEventListener('click', (e)=>{
-    console.log(`hit`);
-    app.classList.toggle(`showingControls`);
-})
+const App = document.querySelector(`#app`);
+const AppDrawSpace = document.querySelector(`#drawSpace`);
+const ToggleControls = document.querySelector(`#toggleControls`);
+const GridResizePara = document.querySelector(`#gridResizeParagraph`);
+const GridResizeRange = document.querySelector(`#gridResize`);
+const GridVisibleButton = document.querySelector(`.svgContainer:first-of-type`);
+const GridInvisibleButton = document.querySelector(`.svgContainer:nth-of-type(2)`);
 
 class Snake {
     static directions = [0,1,2,3]; // up, right, down, left
@@ -148,7 +149,7 @@ class Snake {
     }
 }
 class SnakeGame {
-    static gridSize = 25;
+    static gridSize = 50;
     static startingSnakeLength = 3;
     static snakesToCreate = 0;
     static map = new Map();
@@ -220,25 +221,32 @@ class SnakeGame {
 class DrawSpace {
     static gridSize = 16;
     static map = new Map();
-    static createGrid(){
+    static createGrid(gridSize = DrawSpace.gridSize){
         const colorPicker = document.querySelector(`#colorPicker`);
         const container = document.querySelector(`#drawSpace`);
-        for(let i = 0; i < DrawSpace.gridSize; i++){
+        for(let i = 0; i < gridSize; i++){
             DrawSpace.map.set(i.toString(), new Map());
         }
-        for(let i = 0; i < (DrawSpace.gridSize ** 2); i++){
+        for(let i = 0; i < (gridSize ** 2); i++){
             let div = document.createElement('div');
             div.classList.add(`item`);
-            div.dataset.x = i%DrawSpace.gridSize;
-            div.dataset.y = Math.floor(i/DrawSpace.gridSize);
+            div.dataset.x = i%gridSize;
+            div.dataset.y = Math.floor(i/gridSize);
             div.addEventListener('mouseenter', (e)=>{
               div.style.backgroundColor = colorPicker.value;
             })
-            div.style.flex = `1 0 ${100/DrawSpace.gridSize}%`;
+            div.style.flex = `1 0 ${100/gridSize}%`;
             container.appendChild(div);
-
-            DrawSpace.map.get((i%DrawSpace.gridSize).toString()).set((Math.floor(i/DrawSpace.gridSize)).toString(), div);
+    
+            DrawSpace.map.get((i%gridSize).toString()).set((Math.floor(i/gridSize)).toString(), div);
         }
+    }
+    static destroyGrid(){
+        const container = document.querySelector(`#drawSpace`);
+        while(container.firstChild){
+            container.removeChild(container.firstChild);
+        }
+        DrawSpace.map = new Map();
     }
 }
 function shuffleInPlace(array) {
@@ -258,11 +266,39 @@ function shuffleInPlace(array) {
     return array;
 }
 
+ToggleControls.addEventListener('click', (e)=>{
+    App.classList.toggle(`showingControls`);
+})
+
+GridResizeRange.addEventListener('input', (e)=>{
+    GridResizePara.innerText = `${e.target.value}x${e.target.value}`;
+})
+GridResizeRange.addEventListener('change',(e)=>{
+    DrawSpace.destroyGrid();
+    DrawSpace.createGrid(e.target.value)
+
+})
+GridVisibleButton.addEventListener('click', (e)=>{
+    if (!GridVisibleButton.children[0].classList.contains(`active`)){
+        GridVisibleButton.children[0].classList.toggle(`active`);
+        GridInvisibleButton.children[0].classList.toggle(`active`);
+        AppDrawSpace.classList.toggle(`showingGrid`);
+    }
+})
+GridInvisibleButton.addEventListener('click', (e)=>{
+    if (!GridInvisibleButton.children[0].classList.contains(`active`)){
+        GridVisibleButton.children[0].classList.toggle(`active`);
+        GridInvisibleButton.children[0].classList.toggle(`active`);
+        AppDrawSpace.classList.toggle(`showingGrid`);
+    }
+})
+
+
 SnakeGame.createGrid();
-SnakeGame.createSnake(20);
+SnakeGame.createSnake(50);
 SnakeGame.setUpdateTimer(50);
 
-DrawSpace.createGrid();
+DrawSpace.createGrid(GridResizeRange.value);
 
 
 
